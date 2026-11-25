@@ -25,7 +25,16 @@ const imageGroups = {
     archiludus: [
         "images/archiludus/archiludus01.jpg",
         "images/archiludus/archiludus02.jpg",
-        "images/archiludus/archiludus03.jpg"
+        "images/archiludus/archiludus03.jpg",
+        "images/archiludus/archiludus04.jpg",
+        "images/archiludus/archiludus05.jpg",
+        "images/archiludus/archiludus06.jpg",
+        "images/archiludus/archiludus07.jpg",
+        "images/archiludus/archiludus08.jpg",
+        "images/archiludus/archiludus09.jpg",
+        "images/archiludus/archiludus10.jpg",
+        "images/archiludus/archiludus11.jpg",
+        "images/archiludus/archiludus12.jpg"
     ],
 
     portfolio: [
@@ -38,7 +47,7 @@ const imageGroups = {
 
 
 /* ========================================
-   全カテゴリーの画像をひとつにまとめる
+   全画像
 ======================================== */
 
 const allImages =
@@ -46,7 +55,7 @@ const allImages =
 
 
 /* ========================================
-   HTML要素を取得
+   HTML要素
 ======================================== */
 
 const background =
@@ -57,18 +66,22 @@ const categoryLinks =
 
 
 /* ========================================
-   現在使っている画像グループ
+   状態
 ======================================== */
 
 let currentImages = allImages;
 
-let lastImage = "";
-
 let slideshowTimer;
+
+let isHovering = false;
+
+let currentIndex = 0;
+
+let lastRandomImage = "";
 
 
 /* ========================================
-   画像を事前に読み込む
+   画像を事前読み込み
 ======================================== */
 
 allImages.forEach((imagePath) => {
@@ -81,46 +94,32 @@ allImages.forEach((imagePath) => {
 
 
 /* ========================================
-   ランダムに画像を選ぶ
+   通常時：ランダム画像
 ======================================== */
 
 function getRandomImage(images) {
-
-    /*
-       画像が1枚しかない場合
-    */
 
     if (images.length === 1) {
         return images[0];
     }
 
-
     let selectedImage;
-
-
-    /*
-       直前と同じ画像が出ないようにする
-    */
 
     do {
 
         const randomNumber =
-            Math.floor(
-                Math.random() * images.length
-            );
+            Math.floor(Math.random() * images.length);
 
         selectedImage =
             images[randomNumber];
 
     } while (
-        selectedImage === lastImage
+        selectedImage === lastRandomImage
     );
 
-
-    lastImage = selectedImage;
+    lastRandomImage = selectedImage;
 
     return selectedImage;
-
 }
 
 
@@ -134,35 +133,58 @@ function changeBackground() {
         return;
     }
 
-
-    const nextImage =
-        getRandomImage(currentImages);
+    let nextImage;
 
 
-    /*
-       一度透明にする
-    */
+    /* --------------------------------
+       カーソルを合わせている場合
+       → 順番に表示
+    -------------------------------- */
+
+    if (isHovering) {
+
+        nextImage =
+            currentImages[currentIndex];
+
+        currentIndex++;
+
+        if (currentIndex >= currentImages.length) {
+            currentIndex = 0;
+        }
+
+    }
+
+
+    /* --------------------------------
+       通常時
+       → ランダム表示
+    -------------------------------- */
+
+    else {
+
+        nextImage =
+            getRandomImage(currentImages);
+
+    }
+
+
+    /* --------------------------------
+       0.1秒でフェードアウト
+    -------------------------------- */
 
     background.style.opacity = 0;
 
-
-    /*
-       画像を変更
-    */
 
     setTimeout(() => {
 
         background.style.backgroundImage =
             `url("${nextImage}")`;
 
-
-        /*
-           再び表示
-        */
+        /* 0.1秒でフェードイン */
 
         background.style.opacity = 1;
 
-    }, 250);
+    }, 100);
 
 }
 
@@ -173,42 +195,25 @@ function changeBackground() {
 
 function startSlideshow() {
 
-    /*
-       既存タイマーを解除
-    */
-
     clearInterval(slideshowTimer);
 
-
-    /*
-       カーソル移動時にすぐ画像を変える
-    */
-
     changeBackground();
-
-
-    /*
-       その後1秒ごとに変更
-    */
 
     slideshowTimer =
         setInterval(
             changeBackground,
             1000
         );
-
 }
 
 
 /* ========================================
-   Architecture / Game 等へのカーソル操作
+   カテゴリーへのカーソル操作
 ======================================== */
 
 categoryLinks.forEach((link) => {
 
-    /*
-       カーソルが乗った時
-    */
+    /* カーソルを合わせた時 */
 
     link.addEventListener(
         "mouseenter",
@@ -217,25 +222,13 @@ categoryLinks.forEach((link) => {
             const category =
                 link.dataset.category;
 
-
-            /*
-               そのカテゴリーだけに変更
-            */
-
             currentImages =
                 imageGroups[category];
 
+            isHovering = true;
 
-            /*
-               前回画像をリセット
-            */
-
-            lastImage = "";
-
-
-            /*
-               スライドショーを再スタート
-            */
+            /* 毎回1枚目から開始 */
+            currentIndex = 0;
 
             startSlideshow();
 
@@ -243,24 +236,18 @@ categoryLinks.forEach((link) => {
     );
 
 
-    /*
-       カーソルが離れた時
-    */
+    /* カーソルを離した時 */
 
     link.addEventListener(
         "mouseleave",
         () => {
 
-            /*
-               全作品へ戻す
-            */
-
             currentImages =
                 allImages;
 
+            isHovering = false;
 
-            lastImage = "";
-
+            currentIndex = 0;
 
             startSlideshow();
 
